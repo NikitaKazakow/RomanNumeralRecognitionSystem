@@ -1,13 +1,13 @@
 ﻿using RomanNumeralRecognitionSystem.ViewModel;
 
-namespace RomanNumeralRecognitionSystem.View
+namespace RomanNumeralRecognitionSystem.View.Pages
 {
     /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
+    /// Логика взаимодействия для StartPage.xaml
     /// </summary>
-    public partial class MainWindow
+    public partial class StartPage
     {
-        public MainWindow()
+        public StartPage()
         {
             InitializeComponent();
 

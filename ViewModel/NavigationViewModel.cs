@@ -1,8 +1,9 @@
-﻿using System.Windows.Controls;
-using System.Collections.ObjectModel;
+﻿using System;
 using System.Threading;
+using System.Windows.Controls;
+using System.Collections.ObjectModel;
 using RomanNumeralRecognitionSystem.Util;
-using RomanNumeralRecognitionSystem.View;
+using RomanNumeralRecognitionSystem.View.Pages;
 
 namespace RomanNumeralRecognitionSystem.ViewModel
 {
@@ -58,9 +59,12 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 return _showPageRelayCommand ??
                        (_showPageRelayCommand = new RelayCommand(obj => 
                            {
-                               switch (obj as string)
+                               switch (obj as Enum)
                                {
-                                   case "createNerualNetworkPage":
+                                   case Pages.Start:
+                                       CurrentPage = PageCollection[0];
+                                       break;
+                                   case Pages.CreateNerualNetwork:
                                        CurrentPage = PageCollection[1];
                                        break;
                                }

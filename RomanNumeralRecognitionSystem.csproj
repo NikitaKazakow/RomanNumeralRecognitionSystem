@@ -59,13 +59,17 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Util\Pages.cs" />
     <Compile Include="Util\RelayCommand.cs" />
     <Compile Include="ViewModel\NavigationViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
-    <Compile Include="View\Page\CreateNerualNetworkPage.xaml.cs">
+    <Compile Include="View\Pages\CreateNerualNetworkPage.xaml.cs">
       <DependentUpon>CreateNerualNetworkPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\Page\StartPage.xaml.cs">
+    <Compile Include="View\Pages\OpenFilePage.xaml.cs">
+      <DependentUpon>OpenFilePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Pages\StartPage.xaml.cs">
       <DependentUpon>StartPage.xaml</DependentUpon>
     </Compile>
     <Page Include="View\MainWindow.xaml">
@@ -80,11 +84,15 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="View\Page\CreateNerualNetworkPage.xaml">
+    <Page Include="View\Pages\CreateNerualNetworkPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\Page\StartPage.xaml">
+    <Page Include="View\Pages\OpenFilePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Pages\StartPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
