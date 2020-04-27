@@ -3,12 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModel="clr-namespace:RomanNumeralRecognitionSystem.ViewModel"
         xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
         mc:Ignorable="d"
         Title="Roman Numeral Recognition System" Height="450" Width="800"
         AcrylicWindowStyle="NoIcon"
         TintOpacity="1.0"
         TintColor="{DynamicResource SystemAltHighColorBrush}">
-
-    <Frame Content="{Binding CurrentPage}" NavigationUIVisibility="Hidden"/>
+    <Frame Content="{Binding Source={x:Static viewModel:NavigationViewModel.Instance}, Path=CurrentPage}" NavigationUIVisibility="Hidden"/>
 </fw:AcrylicWindow>

@@ -10,8 +10,6 @@ namespace RomanNumeralRecognitionSystem.View.Pages
         public StartPage()
         {
             InitializeComponent();
-
-            DataContext = NavigationViewModel.Instance;
         }
     }
 }

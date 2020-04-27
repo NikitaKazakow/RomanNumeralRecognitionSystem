@@ -1,9 +1,13 @@
 ﻿using System;
+using System.CodeDom;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Controls;
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using RomanNumeralRecognitionSystem.Util;
 using RomanNumeralRecognitionSystem.View.Pages;
+using RomanNumeralRecognitionSystem.View.Pages.CreationWizard;
 
 namespace RomanNumeralRecognitionSystem.ViewModel
 {
@@ -29,9 +33,20 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         }
 
         private Page _currentPage;
+
+        public enum Pages
+        {
+            StartPage,
+            Back,
+            CreateNerualNetworkNameDirectory,
+            CreateNerualNetworkParams
+        }
+
+        private Stack<Page> _previousPageStack;
         private ObservableCollection<Page> _pageCollection;
 
         private RelayCommand _showPageRelayCommand;
+        private RelayCommand _backRelayCommand;
 
         public Page CurrentPage
         {
@@ -45,11 +60,15 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             }
         }
 
+        public bool folderIsValid { get; private set; }
+        public bool nameIsValid { get; private set; }
+
+        private Stack<Page> PreviousPageStack => _previousPageStack ?? (_previousPageStack = new Stack<Page>());
+
         private ObservableCollection<Page> PageCollection =>
             _pageCollection ?? (_pageCollection = new ObservableCollection<Page>
             {
-                new StartPage(),
-                new CreateNerualNetwork()
+                new StartPage()
             });
 
         public RelayCommand ShowPageRelayCommand
@@ -61,15 +80,40 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                            {
                                switch (obj as Enum)
                                {
-                                   case Pages.Start:
+                                   case Pages.StartPage:
                                        CurrentPage = PageCollection[0];
+                                       PreviousPageStack.Clear();
                                        break;
-                                   case Pages.CreateNerualNetwork:
-                                       CurrentPage = PageCollection[1];
+                                   case Pages.CreateNerualNetworkNameDirectory:
+                                       PreviousPageStack.Push(CurrentPage);
+                                       CurrentPage = new NameAndPathPage();
+                                       break;
+                                   case Pages.CreateNerualNetworkParams:
+                                       PreviousPageStack.Push(CurrentPage);
+                                       CurrentPage = new NerualNetworkParamsPage();
+                                       break;
+                                   case Pages.Back:
+                                       if (PreviousPageStack.Count != 0)
+                                           CurrentPage = PreviousPageStack.Pop();
                                        break;
                                }
-                           },
-                           (obj) => CurrentPage != obj as Page));
+                           }, (obj) =>
+                       {
+                           var result = true;
+                           switch (obj as Enum)
+                           {
+                               case Pages.CreateNerualNetworkParams:
+                                   var viewModel = (CreateNerualNetworkViewModel)CurrentPage.DataContext;
+                                   if (viewModel is null)
+                                       break;
+                                   if (viewModel.SaveFolder == "")
+                                       folderIsValid =  result = false;
+                                   else if (viewModel.SaveName == "")
+                                       nameIsValid = result = false;
+                                   break;
+                           }
+                           return result;
+                       }));
             }
         }
     }
