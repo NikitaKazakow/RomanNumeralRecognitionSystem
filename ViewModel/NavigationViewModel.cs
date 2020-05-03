@@ -1,10 +1,8 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Controls;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
 using RomanNumeralRecognitionSystem.Util;
 using RomanNumeralRecognitionSystem.View.Pages;
 using RomanNumeralRecognitionSystem.View.Pages.CreationWizard;
@@ -39,14 +37,14 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             StartPage,
             Back,
             CreateNerualNetworkNameDirectory,
-            CreateNerualNetworkParams
+            CreateNerualNetworkParams,
+            MainMenuPage
         }
 
         private Stack<Page> _previousPageStack;
         private ObservableCollection<Page> _pageCollection;
 
         private RelayCommand _showPageRelayCommand;
-        private RelayCommand _backRelayCommand;
 
         public Page CurrentPage
         {
@@ -59,16 +57,14 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 OnPropertyChanged(nameof(CurrentPage));
             }
         }
-
-        public bool folderIsValid { get; private set; }
-        public bool nameIsValid { get; private set; }
-
+        
         private Stack<Page> PreviousPageStack => _previousPageStack ?? (_previousPageStack = new Stack<Page>());
 
         private ObservableCollection<Page> PageCollection =>
             _pageCollection ?? (_pageCollection = new ObservableCollection<Page>
             {
-                new StartPage()
+                new StartPage(),
+                new MainMenuPage()
             });
 
         public RelayCommand ShowPageRelayCommand
@@ -92,28 +88,16 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                                        PreviousPageStack.Push(CurrentPage);
                                        CurrentPage = new NerualNetworkParamsPage();
                                        break;
+                                   case Pages.MainMenuPage:
+                                       PreviousPageStack.Clear();
+                                       CurrentPage = PageCollection[1];
+                                       break;
                                    case Pages.Back:
                                        if (PreviousPageStack.Count != 0)
                                            CurrentPage = PreviousPageStack.Pop();
                                        break;
                                }
-                           }, (obj) =>
-                       {
-                           var result = true;
-                           switch (obj as Enum)
-                           {
-                               case Pages.CreateNerualNetworkParams:
-                                   var viewModel = (CreateNerualNetworkViewModel)CurrentPage.DataContext;
-                                   if (viewModel is null)
-                                       break;
-                                   if (viewModel.SaveFolder == "")
-                                       folderIsValid =  result = false;
-                                   else if (viewModel.SaveName == "")
-                                       nameIsValid = result = false;
-                                   break;
-                           }
-                           return result;
-                       }));
+                           }));
             }
         }
     }
