@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Threading;
+using System.Collections.ObjectModel;
 using RomanNumeralRecognitionSystem.Model;
 using RomanNumeralRecognitionSystem.Util;
 
@@ -9,26 +11,35 @@ namespace RomanNumeralRecognitionSystem.ViewModel
 {
     public class CreateNerualNetworkViewModel : ViewModelBase
     {
-        private RelayCommand _saveRelayCommand;
-        private RelayCommand _openRelayCommand;
+        private const int InputNodesCount = 90000;
+
+        private int _outputNeuronCount;
+
+        private RelayCommand _openFolderDialogRelayCommand;
+        private RelayCommand _openFileDialogRelayCommand;
+        private RelayCommand _createNerualNetworkRelayCommand;
 
         private string _saveFolder;
         private string _saveName;
+        private string _waitLabelText;
 
         private bool _isValid;
         private bool _isValidLayersCount;
         private bool _isValidNeuronCount;
+        private bool _isValidOutputNeuronCount;
 
         private ObservableCollection<HiddenLayerViewModel> _hiddenLayersCollection;
 
         private Visibility _folderErrorVisibility;
         private Visibility _nameErrorVisibility;
         private Visibility _fileAlreadyExistVisibility;
+        private Visibility _waitAnimationVisibility;
 
         private IFileService<NerualNetwork> FileService { get; }
         private IDialogService DialogService { get; }
 
         public static double MaxHiddenLayersCount { get; private set; }
+        public static double MaxOutputNeuronCount { get; private set; }
 
         public Visibility FolderErrorVisibility
         {
@@ -55,6 +66,15 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             {
                 _fileAlreadyExistVisibility = value;
                 OnPropertyChanged(nameof(FileAlreadyExistVisibility));
+            }
+        }
+        public Visibility WaitAnimationVisibility
+        {
+            get => _waitAnimationVisibility;
+            set
+            {
+                _waitAnimationVisibility = value;
+                OnPropertyChanged(nameof(WaitAnimationVisibility));
             }
         }
 
@@ -99,12 +119,12 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             {
                 if (_saveName != null) return _saveName;
                 var i = 1;
-                var name = "MyNerualNetwork" + i + ".json";
+                var name = "MyNerualNetwork" + i + ".nrnw";
                 while (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     name)))
                 {
                     i++;
-                    name = "MyNerualNetwork" + i + ".json";
+                    name = "MyNerualNetwork" + i + ".nrnw";
                 }
                 _saveName = "MyNerualNetwork" + i;
                 IsValidLayersCount = true;
@@ -122,7 +142,7 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                     IsValidLayersCount = false;
                     NameErrorVisibility = Visibility.Visible;
                 }
-                else if (File.Exists(Path.Combine(SaveFolder, value + ".json")))
+                else if (File.Exists(Path.Combine(SaveFolder, value + ".nrnw")))
                 {
                     IsValidLayersCount = false;
                     FileAlreadyExistVisibility = Visibility.Visible;
@@ -137,6 +157,16 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 OnPropertyChanged(nameof(SaveName));
             }
         }
+        public string WaitLabelText
+        {
+            get => _waitLabelText;
+            set
+            {
+                _waitLabelText = value;
+                OnPropertyChanged(nameof(WaitLabelText));
+            }
+        }
+
         public ObservableCollection<HiddenLayerViewModel> HiddenLayersCollection
         {
             get
@@ -163,7 +193,7 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         {
             get
             {
-                _isValid = IsValidNeuronCount && IsValidLayersCount;
+                _isValid = IsValidNeuronCount && IsValidLayersCount && IsValidOutputNeuronCount;
                 return _isValid;
             }
             set
@@ -181,13 +211,21 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 OnPropertyChanged(nameof(IsValid));
             }
         }
-
         public bool IsValidNeuronCount
         {
             get => _isValidNeuronCount;
             set
             {
                 _isValidNeuronCount = value;
+                OnPropertyChanged(nameof(IsValid));
+            }
+        }
+        public bool IsValidOutputNeuronCount
+        {
+            private get => _isValidOutputNeuronCount;
+            set
+            {
+                _isValidOutputNeuronCount = value;
                 OnPropertyChanged(nameof(IsValid));
             }
         }
@@ -220,23 +258,41 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 OnPropertyChanged(nameof(HiddenLayersCount));
             }
         }
-
-        public NerualNetwork NerualNetwork { get; set; }
-        public CreateNerualNetworkViewModel()
-        {
-            FileService = new JsonFileService();
-            DialogService = new DefaultDialogService();
-
-            MaxHiddenLayersCount = 3;
-            IsValidLayersCount = true;
-            IsValidNeuronCount = true;
-        }
-        
-        public RelayCommand OpenRelayCommand
+        public int OutputNeuronCont
         {
             get
             {
-                return _openRelayCommand ?? (_openRelayCommand = new RelayCommand(obj =>
+                if (_outputNeuronCount == 0)
+                    _outputNeuronCount = 1;
+                return _outputNeuronCount;
+            }
+            set
+            {
+                _outputNeuronCount = value;
+                IsValidOutputNeuronCount = true;
+                OnPropertyChanged(nameof(OutputNeuronCont));
+            }
+        }
+        public CreateNerualNetworkViewModel()
+        {
+            FileService = new BinaryFileService();
+            DialogService = new DefaultDialogService();
+
+            MaxHiddenLayersCount = 3;
+            MaxOutputNeuronCount = 100;
+
+            IsValidLayersCount = true;
+            IsValidNeuronCount = true;
+            IsValidOutputNeuronCount = true;
+
+            WaitAnimationVisibility = Visibility.Collapsed;
+        }
+        
+        public RelayCommand OpenFolderDialogRelayCommand
+        {
+            get
+            {
+                return _openFolderDialogRelayCommand ?? (_openFolderDialogRelayCommand = new RelayCommand(obj =>
                 {
                     try
                     {
@@ -251,22 +307,55 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             }
         }
 
-        public RelayCommand SaveRelayCommand
+        public RelayCommand OpenFileDialogRelayCommand
         {
             get
             {
-                return _saveRelayCommand ?? (_saveRelayCommand = new RelayCommand(obj =>
+                return _openFileDialogRelayCommand ?? (_openFileDialogRelayCommand = new RelayCommand(obj =>
                 {
                     try
                     {
-                        if (!DialogService.SaveFileDialog()) return;
-                        FileService.Save(DialogService.FilePath, NerualNetwork);
-                        DialogService.ShowMessage("Файл сохранен!");
+                        if (!DialogService.OpenFileDialog()) return;
+                        WaitAnimationVisibility = Visibility.Visible;
+                        WaitLabelText = "Открытие файла...";
+                        var thread = new Thread(() =>
+                            {
+                                NerualNetworkViewModel.Instance.NerualNetwork = FileService.Open(DialogService.FilePath);
+                                WaitAnimationVisibility = Visibility.Collapsed;
+                                NavigationViewModel.Instance.ShowPageRelayCommand.Execute(obj);
+                            })
+                            { IsBackground = true };
+                        thread.Start();
                     }
                     catch (Exception e)
                     {
                         DialogService.ShowMessage(e.Message);
                     }
+                }));
+            }
+        }
+
+        public RelayCommand CreateNerualNetworkRelayCommand
+        {
+            get
+            {
+                return _createNerualNetworkRelayCommand ?? (_createNerualNetworkRelayCommand = new RelayCommand(obj =>
+                {
+                    WaitAnimationVisibility = Visibility.Visible;
+                    var thread = new Thread(() =>
+                    {
+                        WaitLabelText = "Создание нейронной сети...";
+                        var nerualNetwork = new NerualNetwork(InputNodesCount,
+                            HiddenLayersCollection.Select(hiddenLayerViewModel => hiddenLayerViewModel.NeuronCount)
+                                .ToList(),
+                            OutputNeuronCont);
+                        WaitLabelText = "Сохранение на диск...";
+                        FileService.Save(Path.Combine(SaveFolder, SaveName + ".nrnw"), nerualNetwork);
+                        WaitAnimationVisibility = Visibility.Collapsed;
+                        NerualNetworkViewModel.Instance.NerualNetwork = nerualNetwork;
+                        NavigationViewModel.Instance.ShowPageRelayCommand.Execute(obj);
+                    }) {IsBackground = true};
+                    thread.Start();
                 }));
             }
         }

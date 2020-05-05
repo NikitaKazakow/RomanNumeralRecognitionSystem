@@ -54,7 +54,7 @@
                          Text="{Binding SaveFolder, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Grid.Column="1"
                         Style="{StaticResource OpenFileDialogButtonStyle}"
-                        Command="{Binding OpenRelayCommand}"
+                        Command="{Binding OpenFolderDialogRelayCommand}"
                         ToolTip="Просмотр"/>
             </Grid>
             <Label Content="Пустой или недопустимый путь"

@@ -3,30 +3,29 @@
                     xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
                     xmlns:hamburgerMenu="clr-namespace:HamburgerMenu;assembly=HamburgerMenu"
                     xmlns:viewModel="clr-namespace:RomanNumeralRecognitionSystem.ViewModel">
-    <Style x:Key="HeadLineStyle" TargetType="Label">
+    <Style x:Key="ColoursStyle" TargetType="Control">
+        <Setter Property="Foreground" Value="WhiteSmoke"/> 
+    </Style>
+    <Style x:Key="HeadLineStyle" BasedOn="{StaticResource ColoursStyle}" TargetType="Label">
         <Setter Property="HorizontalAlignment" Value="Center"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="FontSize" Value="35"/>
-        <Setter Property="Foreground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
     </Style>
-    <Style x:Key="SubtitleStyle" TargetType="Label">
+    <Style x:Key="SubtitleStyle" BasedOn="{StaticResource ColoursStyle}" TargetType="Label">
         <Setter Property="Margin" Value="10,0,0,0"/>
         <Setter Property="VerticalAlignment" Value="Bottom"/>
         <Setter Property="FontSize" Value="20"/>
-        <Setter Property="Foreground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
     </Style>
-    <Style x:Key="TextInputStyle" TargetType="TextBox">
+    <Style x:Key="TextInputStyle" BasedOn="{StaticResource ColoursStyle}" TargetType="TextBox">
         <Setter Property="Margin" Value="15,0,0,0"/>
         <Setter Property="Padding" Value="5"/>
         <Setter Property="FontSize" Value="20"/>
         <Setter Property="Opacity" Value="0.95"/>
-        <Setter Property="Foreground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
         <Setter Property="Background" Value="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"/>
     </Style>
-    <Style x:Key="OpenFileDialogButtonStyle" TargetType="Button">
+    <Style x:Key="OpenFileDialogButtonStyle" BasedOn="{StaticResource ColoursStyle}" TargetType="Button">
         <Setter Property="FontSize" Value="20"/>
         <Setter Property="Opacity" Value="0.95"/>
-        <Setter Property="Foreground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
         <Setter Property="Background" Value="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"/>
         <Setter Property="Content" Value="..."/>
         <Setter Property="Margin" Value="10,0,0,0"/>
@@ -46,11 +45,10 @@
         <Setter Property="Margin" Value="15,10,0,0"/>
         <Setter Property="Background" Value="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"/>
     </Style>
-    <Style x:Key="SliderStyle" TargetType="Slider">
+    <Style x:Key="SliderStyle" BasedOn="{StaticResource ColoursStyle}" TargetType="Slider">
         <Setter Property="Margin" Value="15,0,0,0"/>
         <Setter Property="IsSnapToTickEnabled" Value="True"/>
-        <Setter Property="TickPlacement" Value="BottomRight"></Setter>
-        <Setter Property="Foreground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
+        <Setter Property="TickPlacement" Value="BottomRight"/>
         <Setter Property="Background" Value="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"/>
         <Setter Property="Minimum" Value="1"/>
     </Style>
@@ -79,9 +77,9 @@
     </Style>
     <Style x:Key="MainMenuStyle" TargetType="hamburgerMenu:HamburgerMenu">
         <Setter Property="Background" Value="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"/>
-        <Setter Property="MenuIconColor" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
-        <Setter Property="SelectionIndicatorColor" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
-        <Setter Property="MenuItemForeground" Value="{DynamicResource SystemBaseMediumHighColorBrush}"/>
+        <Setter Property="MenuIconColor" Value="WhiteSmoke"/>
+        <Setter Property="SelectionIndicatorColor" Value="WhiteSmoke"/>
+        <Setter Property="MenuItemForeground" Value="WhiteSmoke"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="FontSize" Value="20"/>
     </Style>

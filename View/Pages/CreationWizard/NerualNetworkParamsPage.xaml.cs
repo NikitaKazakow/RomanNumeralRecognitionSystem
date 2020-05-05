@@ -24,5 +24,11 @@ namespace RomanNumeralRecognitionSystem.View.Pages.CreationWizard
             var viewModel = (CreateNerualNetworkViewModel)DataContext;
             viewModel.IsValidNeuronCount = false;
         }
+
+        private void Validation_OnErrorOutputNeuronCount(object sender, ValidationErrorEventArgs e)
+        {
+            var viewModel = (CreateNerualNetworkViewModel)DataContext;
+            viewModel.IsValidOutputNeuronCount = false;
+        }
     }
 }

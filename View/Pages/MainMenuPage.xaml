@@ -4,21 +4,39 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:hamburgerMenu="clr-namespace:HamburgerMenu;assembly=HamburgerMenu"
-      xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:local="clr-namespace:RomanNumeralRecognitionSystem.View.Pages"
+      xmlns:viewModel="clr-namespace:RomanNumeralRecognitionSystem.ViewModel"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="MainMenuPage">
 
-    <Grid ShowGridLines="True">
+    <Grid DataContext="{Binding Source={x:Static viewModel:NerualNetworkViewModel.Instance}}">
+        <Grid.Background>
+            <ImageBrush ImageSource="../../Resources/image/background.png"/>
+        </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
+        <Frame Grid.Column="0"
+               Grid.ColumnSpan="2"
+               Content="{Binding CurrentPage}"/>
         <hamburgerMenu:HamburgerMenu
             Grid.Column="0"
-            Style="{StaticResource MainMenuStyle}">
-            <hamburgerMenu:HamburgerMenuItem Text="Обучение" Icon="{Binding Source={iconPacks:BoxIcons Kind=LogosAdobe}, Converter={iconPacks:PackIconFontAwesomeKindToImageConverter Brush=Crimson}}"/>
+            Style="{StaticResource MainMenuStyle}"
+            IsOpen="True">
+            <hamburgerMenu:HamburgerMenuItem
+                Text="Обучение"
+                Icon="../../Resources/image/learning.png"
+                SelectionCommand="{Binding ShowLearningPageCommand}"/>
+            <hamburgerMenu:HamburgerMenuItem
+                Text="Распознавание"
+                Icon="../../Resources/image/recognition.png"
+                SelectionCommand="{Binding ShowRecognitionRelayCommand}"/>
+            <hamburgerMenu:HamburgerMenuItem
+                Text="Настройки"
+                Icon="../../Resources/image/setings.png"
+                SelectionCommand="{Binding ShowSettingsRelayCommand}"/>
         </hamburgerMenu:HamburgerMenu>
     </Grid>
 </Page>

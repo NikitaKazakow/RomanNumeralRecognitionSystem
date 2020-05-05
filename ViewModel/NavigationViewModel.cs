@@ -49,7 +49,7 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         public Page CurrentPage
         {
             get => _currentPage ?? PageCollection[0];
-            private set
+            set
             {
                 if (_currentPage == value)
                     return;

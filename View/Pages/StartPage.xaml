@@ -35,11 +35,17 @@
             <Button
                 Content="Открыть"
                 Padding="100,0,100,0"
-                Style="{StaticResource NavigationButtonStyle}" Height="55" Margin="10,10,10,0" VerticalAlignment="Top"/>
+                Style="{StaticResource NavigationButtonStyle}"
+                Command="{Binding OpenFileDialogRelayCommand}"
+                CommandParameter="{x:Static viewModel:NavigationViewModel+Pages.MainMenuPage}">
+                <Button.DataContext>
+                    <viewModel:CreateNerualNetworkViewModel/>
+                </Button.DataContext>
+            </Button>
             <Button Content="+"
                     Padding="30,0,30,0"
                     Style="{StaticResource NavigationButtonStyle}"
-                    CommandParameter="{x:Static viewModel:NavigationViewModel+Pages.CreateNerualNetworkNameDirectory}" Height="55" Margin="10,10,10,0" VerticalAlignment="Top"/>
+                    CommandParameter="{x:Static viewModel:NavigationViewModel+Pages.CreateNerualNetworkNameDirectory}"/>
         </StackPanel>
     </Grid>
 </Page>

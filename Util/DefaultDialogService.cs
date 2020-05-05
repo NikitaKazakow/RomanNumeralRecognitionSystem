@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -19,19 +20,21 @@ namespace RomanNumeralRecognitionSystem.Util
                 InitialDirectory = "/",
                 IsFolderPicker = true
             };
-            if (openFolderDialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                FilePath = openFolderDialog.FileName;
-                return true;
-            }
-            return false;
+            if (openFolderDialog.ShowDialog() != CommonFileDialogResult.Ok) return false;
+            FilePath = openFolderDialog.FileName;
+            return true;
         }
 
-        public bool SaveFileDialog()
+        public bool OpenFileDialog()
         {
-            var saveFileDialog = new SaveFileDialog();
-            if (saveFileDialog.ShowDialog() != true) return false;
-            FilePath = saveFileDialog.FileName;
+            var openFileDialog = new OpenFileDialog
+            {
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Filter = "Nerual network files (*.nrnw)|*.nrnw",
+                FilterIndex = 0
+            };
+            if (openFileDialog.ShowDialog() != true) return false;
+            FilePath = openFileDialog.FileName;
             return true;
         }
     }
