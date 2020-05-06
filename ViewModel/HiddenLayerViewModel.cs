@@ -13,8 +13,17 @@
                 if (value <= 0)
                     return;
                 _neuronCount = value;
-                ((CreateNerualNetworkViewModel)
-                    NavigationViewModel.Instance.CurrentPage.DataContext).IsValidNeuronCount = true;
+                var viewModel = NavigationViewModel.Instance.CurrentPage.DataContext;
+                switch (viewModel)
+                {
+                    case CreateNerualNetworkViewModel model:
+                        model.IsValidNeuronCount = true;
+                        break;
+                    case NerualNetworkProcessViewModel model:
+                        model.IsValidNeuronCount = true;
+                        break;
+                }
+
             }
         }
     }

@@ -2,13 +2,139 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:RomanNumeralRecognitionSystem.View.Pages.SubMenu"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:viewModel="clr-namespace:RomanNumeralRecognitionSystem.ViewModel"
+      xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
+      xmlns:gif="http://wpfanimatedgif.codeplex.com"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="SettingsPage">
-
-    <Grid Background="Tomato">
-        
+      Title="SettingsPage"
+      DataContext="{Binding Source={x:Static viewModel:NerualNetworkProcessViewModel.Instance}}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="4*"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.Background>
+            <ImageBrush ImageSource="/Resources/image/background.png"/>
+        </Grid.Background>
+        <ScrollViewer Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3"
+                      Grid.RowSpan="2"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel CanVerticallyScroll="True"
+                        Margin="0,0,10,0">
+                <Label Style="{StaticResource SubtitleStyle}"
+                   Content="Количество скрытых слоев"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Style="{StaticResource SliderStyle}"
+                            Maximum="{x:Static viewModel:CreateNerualNetworkViewModel.MaxHiddenLayersCount}"
+                            Name="HiddenLayersSlider"
+                            Value="{Binding HiddenLayersCount}"/>
+                    <TextBox Grid.Column="1"
+                             Style="{StaticResource TextInputStyle}"
+                             Text="{Binding ElementName=HiddenLayersSlider, Path=Value, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True, BindsDirectlyToSource=True}"/>
+                </Grid>
+                <Label Style="{StaticResource SubtitleStyle}"
+                   Content="Количество нейронов в скрытых слоях"/>
+                <ListBox x:Name="HiddenLayersListBox"
+                     Style="{StaticResource HiddenLayersListBoxStyle}"
+                     ItemsSource="{Binding HiddenLayersCollection}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0"
+                                   Style="{StaticResource SubtitleListBoxItemStyle}"
+                                   Content="{Binding Path=Number}"
+                                   ContentStringFormat="Слой №{0}:" Height="37" HorizontalAlignment="Right" Width="99" Margin="0"/>
+                                <Slider Grid.Column="1"
+                                        Maximum="300"
+                                        TickFrequency="10"
+                                        Style="{StaticResource SliderStyle}"
+                                        Value="{Binding NeuronCount}"/>
+                                <TextBox Grid.Column="2"
+                                         Style="{StaticResource TextInputStyle}"
+                                         Text="{Binding NeuronCount, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Label Style="{StaticResource SubtitleStyle}"
+                       Content="Количество выходных нейронов"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Style="{StaticResource SliderStyle}"
+                            Maximum="{x:Static viewModel:CreateNerualNetworkViewModel.MaxOutputNeuronCount}"
+                            Name="OutputNeuronContSlider"
+                            Value="{Binding OutputNeuronCont}"/>
+                    <TextBox Grid.Column="1"
+                             Style="{StaticResource TextInputStyle}"
+                             Text="{Binding ElementName=OutputNeuronContSlider, Path=Value, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True, BindsDirectlyToSource=True}"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+        <Button Grid.Row="2"
+                Grid.Column="1"
+                Content="Сбросить"
+                Style="{StaticResource NavigationButtonStyle}"
+                Command="{Binding ShowSettingsRelayCommand}"
+                Margin="10,0,10,10"
+                VerticalAlignment="Bottom"/>
+        <Button Grid.Row="2"
+                Grid.Column="2"
+                Content="Сохранить"
+                Style="{StaticResource NavigationButtonStyle}"
+                CommandParameter="{x:Static viewModel:NavigationViewModel+Pages.MainMenuPage}"
+                Margin="10,0,10,10"
+                VerticalAlignment="Bottom"
+                IsEnabled="{Binding IsValid}"
+                Command="{Binding ChangeParametersRelayCommand}"/>
+        <Grid Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Grid.Row="0"
+              Grid.RowSpan="3"
+              Opacity="0.8"
+              Background="{x:Static fw:AccentColors.ImmersiveSystemAccentDark2Brush}"
+              Visibility="{Binding WaitAnimationVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition Height="0.5*"/>
+                <RowDefinition Height="0.5*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Image
+                Grid.Row="1"
+                Grid.Column="1"
+                gif:ImageBehavior.AnimatedSource="../../../Resources/image/wait.gif"/>
+            <Label Grid.Column="1"
+                   Grid.Row="2"
+                   HorizontalContentAlignment="Center"
+                   Style="{StaticResource SubtitleStyle}"
+                   Content="{Binding WaitLabelText}"/>
+        </Grid>
     </Grid>
 </Page>
