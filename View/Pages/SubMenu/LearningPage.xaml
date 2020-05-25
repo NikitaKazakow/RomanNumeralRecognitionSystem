@@ -4,12 +4,99 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:viewModel="clr-namespace:RomanNumeralRecognitionSystem.ViewModel"
+      xmlns:fluentWpf="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
+      xmlns:gif="http://wpfanimatedgif.codeplex.com"
+      xmlns:view="clr-namespace:RomanNumeralRecognitionSystem.View"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="LearningPage"
       DataContext="{Binding Source={x:Static viewModel:NerualNetworkProcessViewModel.Instance}}">
 
-    <Grid>
-
+    <Grid fluentWpf:PointerTracker.Enabled="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4*"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.Background>
+            <ImageBrush ImageSource="/Resources/image/background.png"/>
+        </Grid.Background>
+        <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2">
+            <Label Style="{StaticResource SubtitleStyle}"
+                   Content="Выберете набор для обучения:"/>
+            <ComboBox Foreground="Black"
+                      Style="{StaticResource ComboBoxStyle}"
+                      ItemsSource="{Binding TrainSetCollection}"
+                      SelectedItem="{Binding SelectedTrainSet}"
+                      ItemContainerStyle="{StaticResource ComboBoxItemStyle}">
+            </ComboBox>
+            <Label Style="{StaticResource SubtitleStyle}"
+                   Content="Коэффициент скорости обучения:"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70*"/>
+                    <ColumnDefinition Width="263*"/>
+                    <ColumnDefinition Width="67*"/>
+                </Grid.ColumnDefinitions>
+                <Slider Style="{StaticResource LearningRateSliderStyle}"
+                        Maximum="1"
+                        Name="LearningRateSlider"
+                        Value="{Binding LearningRate}" Grid.ColumnSpan="2"/>
+                <TextBox Grid.Column="2"
+                         Style="{StaticResource TextInputStyle}"
+                         Text="{Binding ElementName=LearningRateSlider, Path=Value, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True, BindsDirectlyToSource=True}"/>
+            </Grid>
+        </StackPanel>
+        <Button Grid.Row="1"
+                Grid.Column="2"
+                Content="Обучить"
+                IsEnabled="{Binding IsValidLayersCount}"
+                Style="{StaticResource NavigationButtonStyle}"
+                Command="{Binding StartLearningRelayCommand}"
+                Margin="10,0,10,10"
+                VerticalAlignment="Bottom"/>
+        <Grid Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Grid.Row="0"
+              Grid.RowSpan="2"
+              Opacity="0.8"
+              Background="{x:Static fluentWpf:AccentColors.ImmersiveSystemAccentDark2Brush}"
+              Visibility="{Binding WaitAnimationVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition Height="0.5*"/>
+                <RowDefinition Height="0.5*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Image
+                Grid.Row="1"
+                Grid.Column="1"
+                gif:ImageBehavior.AnimatedSource="../../../Resources/image/wait.gif"/>
+            <Label Grid.Column="1"
+                   Grid.Row="2"
+                   HorizontalContentAlignment="Center"
+                   Style="{StaticResource SubtitleStyle}"
+                   Content="{Binding WaitLabelText}"/>
+        </Grid>
+        <view:MsChart Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.RowSpan="2"
+                      Grid.ColumnSpan="3"
+                      Visibility="{Binding LearningResultVisibility}"
+                      SeriesCollection="{Binding LearningResultCollection}"
+                      XLabel="Эпохи"
+                      YLabel="Функция ошибки"
+                      Title="Один скрытый слой"/>
     </Grid>
 </Page>

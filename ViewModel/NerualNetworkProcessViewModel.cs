@@ -1,4 +1,6 @@
-﻿using InkSharp;
+﻿using System;
+using System.Collections.Generic;
+using InkSharp;
 using System.Windows;
 using System.Drawing;
 using System.Threading;
@@ -6,12 +8,19 @@ using InkSharp.Interfaces;
 using System.Drawing.Imaging;
 using System.Windows.Controls;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Ink;
 using System.Windows.Input;
+using Caliburn.Micro;
 using MathNet.Numerics.LinearAlgebra;
 using RomanNumeralRecognitionSystem.Util;
 using RomanNumeralRecognitionSystem.Model;
+using RomanNumeralRecognitionSystem.View.Pages;
 using RomanNumeralRecognitionSystem.View.Pages.SubMenu;
 
 namespace RomanNumeralRecognitionSystem.ViewModel
@@ -23,6 +32,7 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         private NerualNetworkProcessViewModel()
         {
             WaitAnimationVisibility = Visibility.Collapsed;
+            LearningResultVisibility = Visibility.Collapsed;
         }
         public static NerualNetworkProcessViewModel Instance
         {
@@ -38,16 +48,23 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             }
         }
 
+        private ObservableCollection<string> _trainSetCollection;
+
         private string _recognitionResult;
-        
+        private string _selectedTrainSet;
+
+        private double _learning_rate;
+
+        private static BindableCollection<Series> _learningResultCollection;
+
         private RelayCommand _showLearningPageCommand;
         private RelayCommand _showRecognitionRelayCommand;
         private RelayCommand _showSettingsRelayCommand;
         private RelayCommand _saveNerualNetworkRelayCommand;
         private RelayCommand _recognizeRelayCommand;
         private RelayCommand _clearCanvasRelayCommand;
-
         private RelayCommand _changeParametersRelayCommand;
+        private RelayCommand _startLearningRelayCommand;
 
         private IDrawing _strokesCollection;
 
@@ -79,6 +96,24 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             }
 
             return Vector<double>.Build.Dense(result);
+        }
+
+        public ObservableCollection<string> TrainSetCollection
+        {
+            get
+            {
+                if (_trainSetCollection != null) return _trainSetCollection;
+                var files = Directory.EnumerateFiles(Environment.CurrentDirectory + @"\TrainData", 
+                        "*", SearchOption.AllDirectories)
+                    .Select(Path.GetFileName);
+
+                _trainSetCollection = new ObservableCollection<string>();
+                foreach (var file in files)
+                {
+                    _trainSetCollection.Add(file);
+                }
+                return _trainSetCollection;
+            }
         }
 
         public RelayCommand ShowLearningPageCommand
@@ -132,6 +167,18 @@ namespace RomanNumeralRecognitionSystem.ViewModel
                 {
                     CreateNerualNetwork();
                     SaveNerualNetwork(obj);
+                }));
+            }
+        }
+
+
+        public RelayCommand StartLearningRelayCommand
+        {
+            get
+            {
+                return _startLearningRelayCommand ?? (_startLearningRelayCommand = new RelayCommand(obj =>
+                {
+                    StartLearning(SelectedTrainSet, LearningRate, 10);
                 }));
             }
         }
@@ -215,6 +262,43 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             {
                 _recognitionResult = value;
                 OnPropertyChanged(nameof(RecognitionResult));
+            }
+        }
+
+        public string SelectedTrainSet
+        {
+            get => _selectedTrainSet ?? (_selectedTrainSet = TrainSetCollection[0]);
+            set
+            {
+                _selectedTrainSet = value;
+                OnPropertyChanged(nameof(SelectedTrainSet));
+            }
+        }
+
+        public double LearningRate
+        {
+            get
+            {
+                if (_learning_rate == 0)
+                {
+                    _learning_rate = 0.1;
+                }
+                return  _learning_rate;
+            }
+            set
+            {
+                _learning_rate = value;
+                OnPropertyChanged(nameof(LearningRate));
+            }
+        }
+
+        public BindableCollection<Series> LearningResultCollection
+        {
+            get => _learningResultCollection ?? (_learningResultCollection = new BindableCollection<Series>());
+            set
+            {
+                _learningResultCollection = value;
+                OnPropertyChanged(nameof(LearningResultCollection));
             }
         }
     }

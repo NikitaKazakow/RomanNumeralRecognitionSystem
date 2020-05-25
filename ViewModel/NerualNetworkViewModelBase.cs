@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using System.Threading;
-using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.Windows.Threading;
 using RomanNumeralRecognitionSystem.Model;
 using RomanNumeralRecognitionSystem.Util;
 
@@ -14,8 +19,8 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         private static readonly object Locker = new object();
         public static int InputNodesCount { get; } = 90000;
 
-        private int _outputNeuronCount;
-        
+        private static int _outputNeuronCount;
+
         private bool _isValid;
         private bool _isValidLayersCount;
         private bool _isValidNeuronCount;
@@ -29,7 +34,8 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         private Visibility _nameErrorVisibility;
         private Visibility _fileAlreadyExistVisibility;
         private Visibility _waitAnimationVisibility;
-
+        private Visibility _learningResultVisibility;
+        
         private IFileService<NerualNetwork> FileService { get; }
 
 
@@ -165,6 +171,16 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             }
         }
 
+        public Visibility LearningResultVisibility
+        {
+            get => _learningResultVisibility;
+            set
+            {
+                _learningResultVisibility = value;
+                OnPropertyChanged(nameof(LearningResultVisibility));
+            }
+        }
+
         public Visibility FolderErrorVisibility
         {
             get => _folderErrorVisibility;
@@ -274,6 +290,7 @@ namespace RomanNumeralRecognitionSystem.ViewModel
         }
         public static string SavePath { get; set; }
 
+
         protected NerualNetworkViewModelBase()
         {
             IsValidLayersCount = true;
@@ -281,26 +298,153 @@ namespace RomanNumeralRecognitionSystem.ViewModel
             IsValidOutputNeuronCount = true;
 
             FileService = new BinaryFileService();
+
         }
 
         protected void CreateNerualNetwork()
         {
             var thread = new Thread(() =>
+            {
+                WaitLabelText = "Создание нейронной сети...";
+                WaitAnimationVisibility = Visibility.Visible;
+                lock (Locker)
                 {
-                    WaitLabelText = "Создание нейронной сети...";
-                    WaitAnimationVisibility = Visibility.Visible;
-                    lock (Locker)
-                    {
-                        NerualNetworkProcessViewModel.Instance.NerualNetwork = new NerualNetwork(InputNodesCount,
-                            HiddenLayersCollection.Select(hiddenLayerViewModel => hiddenLayerViewModel.NeuronCount)
-                                .ToList(),
-                            OutputNeuronCont);
-                        SavePath = Path.Combine(SaveFolder, SaveName + ".nrnw");
-                    }
-                    WaitAnimationVisibility = Visibility.Collapsed;
-                })
-                { IsBackground = true };
+                    NerualNetworkProcessViewModel.Instance.NerualNetwork = new NerualNetwork(InputNodesCount,
+                        HiddenLayersCollection.Select(hiddenLayerViewModel => hiddenLayerViewModel.NeuronCount)
+                            .ToList(),
+                        OutputNeuronCont);
+                    SavePath = Path.Combine(SaveFolder, SaveName + ".nrnw");
+                }
+
+                WaitAnimationVisibility = Visibility.Collapsed;
+            }) {IsBackground = true};
             thread.Start();
+        }
+
+        protected void StartLearning(string trainSetName, double learningRate, int epochCount)
+        {
+            var thread = new Thread(obj =>
+            {
+                WaitLabelText = "Обучение нейронной сети...";
+                WaitAnimationVisibility = Visibility.Visible;
+
+                var trainSet = new List<TrainRecord>();
+                using (var reader = new StreamReader(Path.GetFullPath("TrainData//" + trainSetName)))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var values = reader.ReadLine()?.Split(',');
+
+                        if (values != null && values.Length <= 1) continue;
+
+                        var data = new double[values.Length - 1];
+
+                        for (var i = 0; i < values.Length - 1; i++)
+                        {
+                            var value = double.Parse(values[i]);
+                            if (value > 0)
+                                data[i] = 1.0;
+                            else
+                                data[i] = 0.01;
+                        }
+
+                        var marker = int.Parse(values[90000]);
+
+                        var temp = NerualNetworkProcessViewModel.Instance.NerualNetwork.HiddenLayersList.Count - 1;
+
+                        trainSet.Add(new TrainRecord(data,
+                            NerualNetworkProcessViewModel.Instance.NerualNetwork.HiddenLayersList[temp].RowCount,
+                            marker));
+                    }
+                }
+
+                var random = new Random();
+                for (var i = trainSet.Count - 1; i >= 1; i--)
+                {
+                    var j = random.Next(i + 1);
+                    var temp = trainSet[j];
+                    trainSet[j] = trainSet[i];
+                    trainSet[i] = temp;
+                }
+
+                for (var j = 0; j < 3; j++)
+                {
+                    switch (j)
+                    {
+                        case 0:
+                            NerualNetworkProcessViewModel.Instance.NerualNetwork = new NerualNetwork(90000, new List<int>
+                            {
+                                25,
+                                25,
+                                50
+                            }, 5);
+                            break;
+                        case 1:
+                            NerualNetworkProcessViewModel.Instance.NerualNetwork = new NerualNetwork(90000, new List<int>
+                            {
+                                25,
+                                50,
+                                25
+                            }, 5);
+                            break;
+                        case 2:
+                            NerualNetworkProcessViewModel.Instance.NerualNetwork = new NerualNetwork(90000, new List<int>
+                            {
+                                50,
+                                25,
+                                25
+                            }, 5);
+                            break;
+                    }
+
+                    var ds = new Series
+                    {
+                        ChartType = SeriesChartType.Line,
+                        BorderDashStyle = ChartDashStyle.Solid,
+                        MarkerStyle = MarkerStyle.Diamond,
+                        MarkerSize = 8,
+                        BorderWidth = 2
+                    };
+
+                    var timer = new Stopwatch();
+                    timer.Start();
+                    for (var i = 0; i < epochCount; i++)
+                    {
+                        var errorValues = NerualNetworkProcessViewModel.Instance.NerualNetwork
+                            .Train(trainSet, learningRate).Select(points => points.Item2).ToList();
+                        ds.Points.AddY(StandardDeviation(errorValues));
+                    }
+                    timer.Stop();
+                    var interval = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds);
+                    var time = interval.Hours + " ч. " + interval.Minutes + " мин. " + interval.Seconds + " с. " + interval.Milliseconds + " мс ";
+                    
+                    ds.Name = "№" + (j + 1);
+                    
+                    Console.WriteLine(@"Эксперимент №" + (j + 1) + @" Время обучения " + time);
+                    
+                    ((Dispatcher)obj).BeginInvoke(new MethodInvoker(() =>
+                    {
+                        NerualNetworkProcessViewModel.Instance.LearningResultCollection.Add(ds);
+                    }));
+                }
+
+                WaitAnimationVisibility = Visibility.Collapsed;
+                LearningResultVisibility = Visibility.Visible;
+
+            })
+            { IsBackground = true };
+            thread.Start(Dispatcher.CurrentDispatcher);
+        }
+
+        private static double StandardDeviation(IReadOnlyCollection<double> vector)
+        {
+            var sum = vector.Sum();
+            var average = sum / vector.Count;
+
+            var squaresQuery = vector.Select(value => (value - average) * (value - average));
+            var sumOfSquares = squaresQuery.Sum();
+
+            return Math.Sqrt(sumOfSquares / (vector.Count - 1));
         }
 
         protected void SaveNerualNetwork(object obj)

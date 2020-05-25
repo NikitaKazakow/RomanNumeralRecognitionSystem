@@ -38,7 +38,7 @@ namespace RomanNumeralRecognitionSystem.Model
         /// <param name="outputNodes">Количество нейронов в выходном слое</param>
         public NerualNetwork(int inputNodes, IReadOnlyList<int> hiddenNodesCountList, int outputNodes)
         {
-            Console.WriteLine("Создание нейронной сети...");
+            Console.WriteLine(@"Создание нейронной сети...");
 
             _hiddenLayerList = new List<Matrix<double>>();
 
@@ -68,7 +68,7 @@ namespace RomanNumeralRecognitionSystem.Model
                 }
                 _hiddenLayerList.Add(matrix);
             }
-            Console.WriteLine("Нейронная сеть создана!");
+            Console.WriteLine(@"Нейронная сеть создана!");
         }
 
         private static Vector<double> Sigmoid(Vector<double> vector)
@@ -80,15 +80,14 @@ namespace RomanNumeralRecognitionSystem.Model
 
         private static double StandardDeviation(ICollection<double> vector)
         {
-            var sum = vector.Sum();
-            var average = sum / vector.Count;
+            var average = vector.Sum() / vector.Count;
 
             var squaresQuery = vector.Select(value => (value - average) * (value - average));
             var sumOfSquares = squaresQuery.Sum();
 
             return Math.Sqrt(sumOfSquares / (vector.Count - 1));
         }
-
+        
         /// <summary>
         /// Функция опроса нейронной сети
         /// </summary>
@@ -108,12 +107,14 @@ namespace RomanNumeralRecognitionSystem.Model
         /// </summary>
         /// <param name="trainRecords">Список с записями для тренировки <see cref="TrainRecord"/></param>
         /// <param name="learningRate">Коэффициент скорости обучения</param>
-        public void Train(List<TrainRecord> trainRecords, double learningRate)
+        public List<Tuple<int, double>> Train(List<TrainRecord> trainRecords, double learningRate)
         {
-            foreach (var trainRecord in trainRecords)
+            var errorFunctionValues = new List<Tuple<int,double>>();
+            for (var k = 0; k < trainRecords.Count; k++)
             {
+                var trainRecord = trainRecords[k];
                 var errorList = new List<Vector<double>>();
-                var valuesList = new List<Vector<double>> { trainRecord.DataVector };
+                var valuesList = new List<Vector<double>> {trainRecord.DataVector};
 
                 var result = Sigmoid(_hiddenLayerList[0].Multiply(trainRecord.DataVector));
                 valuesList.Add(result);
@@ -127,7 +128,11 @@ namespace RomanNumeralRecognitionSystem.Model
                     }
                 }
 
-                errorList.Add(trainRecord.TargetVector.Subtract(result));
+                var errorVector = trainRecord.TargetVector.Subtract(result);
+
+                errorFunctionValues.Add(new Tuple<int, double>(k, StandardDeviation(errorVector)));
+
+                errorList.Add(errorVector);
                 if (_hiddenLayerList.Count <= 1) continue;
                 {
                     for (int i = _hiddenLayerList.Count - 1, j = 0; i > 0; i--, j++)
@@ -144,8 +149,10 @@ namespace RomanNumeralRecognitionSystem.Model
                         .PointwiseMultiply(valuesList[i + 1].SubtractFrom(1.0))
                         .ToColumnMatrix().Multiply(valuesList[i].ToRowMatrix()).Multiply(learningRate);
                 }
+
                 Console.WriteLine(trainRecord.DataVector);
             }
+            return errorFunctionValues;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
